@@ -15,31 +15,43 @@ import java.util.List;
 import at.htlgkr.steam.Game;
 
 public class GameAdapter extends BaseAdapter {
+
+
+    private int listViewItemLayoutId;
+    private List<Game> games;
+    private LayoutInflater inflater;
+
+
     public GameAdapter(Context context, int listViewItemLayoutId, List<Game> games) {
-        // Implementieren Sie diesen Konstruktor
+        this. listViewItemLayoutId = listViewItemLayoutId;
+        this.games = games;
+        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
     public int getCount() {
-        // Implementiren Sie diese Methode
-        return -1;
+        return this.games.size();
     }
 
     @Override
     public Object getItem(int position) {
-        // Implementiren Sie diese Methode
-        return null;
+        return games.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        // Implementiren Sie diese Methode
-        return -1;
+        return 0;
     }
 
     @Override
     public View getView(int position, View givenView, ViewGroup parent) {
-        //Implementieren Sie diese Methode;
-        return null;
+        SimpleDateFormat sdf = new SimpleDateFormat(Game.DATE_FORMAT);
+        Game game = games.get(position);
+        View listItem = (givenView == null)?
+                inflater.inflate(this.listViewItemLayoutId,null) : givenView;
+        ((TextView) listItem.findViewById(R.id.name)).setText(game.getName());
+        ((TextView) listItem.findViewById(R.id.date)).setText(sdf.format(game.getReleaseDate()));
+        ((TextView) listItem.findViewById(R.id.price)).setText(String.valueOf(game.getPrice()));
+        return listItem;
     }
 }

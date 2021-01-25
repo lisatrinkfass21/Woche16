@@ -1,61 +1,68 @@
 package at.htlgkr.steam;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 public class Game {
     public static final String DATE_FORMAT = "dd.MM.yyyy";
 
-    private String name;
+    private String name = "";
     private Date releaseDate;
-    private double price;
+    private double price = 0.0;
 
     public Game() {
         // dieser Konstruktor muss existieren
     }
 
+    public Game(String name, Date releaseDate, double price) {
+        this.name = name;
+        this.releaseDate = releaseDate;
+        this.price = price;
+    }
+
     public String getName() {
-        // Implementieren Sie diese Methode
-        return null;
+        return this.name;
     }
 
     public void setName(String name) {
-        // Implementieren Sie diese Methode
+        this.name = name;
     }
 
     public Date getReleaseDate() {
-        // Implementieren Sie diese Methode
-        return null;
+        return this.releaseDate;
     }
 
     public void setReleaseDate(Date releaseDate) {
-        // Implementieren Sie diese Methode
+        this.releaseDate = releaseDate;
     }
 
     public double getPrice() {
-        // Implementieren Sie diese Methode
-        return -1;
+        return this.price;
     }
 
     public void setPrice(double price) {
-        // Implementieren Sie diese Methode
+        this.price=price;
     }
 
     @Override
     public String toString() {
-        // Implementieren Sie diese Methode
-        return null;
+        SimpleDateFormat sdf = new SimpleDateFormat(this.DATE_FORMAT);
+        return "["+sdf.format(this.releaseDate)+"] "+ this.name + " "+this.price ;
     }
 
     @Override
     public boolean equals(Object o) {
-        // Implementieren Sie diese Methode
+        Game g = (Game) o;
+        if(this.name.equals(g.name)){
+            return true;
+        }
         return false;
     }
 
     @Override
     public int hashCode() {
-        // Implementieren Sie diese Methode
-        return -1;
+       return Objects.hash(name, releaseDate, price);
     }
 }
 
