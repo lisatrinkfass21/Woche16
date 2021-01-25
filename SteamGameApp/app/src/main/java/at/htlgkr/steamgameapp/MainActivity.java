@@ -45,14 +45,18 @@ public class MainActivity extends AppCompatActivity {
 
         mListView = findViewById(R.id.gamesList);
         loadGamesIntoListView();
-        mAdap = new GameAdapter(this, R.layout.game_item_layout, games);
-        mListView.setAdapter(mAdap);
+        setAdap();
 
 
         setUpReportSelection();
         setUpSearchButton();
         setUpAddGameButton();
         setUpSaveButton();
+    }
+
+    private void setAdap(){
+        mAdap = new GameAdapter(this, R.layout.game_item_layout, games);
+        mListView.setAdapter(mAdap);
     }
 
     private void loadGamesIntoListView() {
@@ -82,15 +86,15 @@ public class MainActivity extends AppCompatActivity {
         // Implementieren Sie diese Methode.
     }
 
-    public void search(View view){
+    public void search(View view) {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle(SteamGameAppConstants.ENTER_SEARCH_TERM);
         final EditText mTextView = new EditText(this);
         mTextView.setId(R.id.dialog_search_field);
         alert.setView(mTextView);
-        alert.setPositiveButton("search", new View.OnClickListener(){
+        alert.setPositiveButton("search", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which){
+            public void onClick(DialogInterface dialog, int which) {
                 //noch zu programmieren
             }
         });
@@ -98,15 +102,56 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void addGame(View view){
+    public void addGame(View view) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle(SteamGameAppConstants.NEW_GAME_DIALOG_TITLE);
+        final EditText textName = new EditText(this);
+        textName.setId(R.id.dialog_search_field);
+        alert.setView(textName);
+        final EditText textDate = new EditText(this);
+        textDate.setId(R.id.dialog_search_field);
+        alert.setView(textDate);
+        final EditText textPrice = new EditText(this);
+        textPrice.setId(R.id.dialog_search_field);
+        alert.setView(textPrice);
+        alert.setPositiveButton("add", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String name = "";
+                Date date = new Date();
+                double price = 0.0;
+                if (textName.getText().toString() != null) {
+                    name = textName.getText().toString();
+                }
+                if (textDate.getText().toString() != null) {
+                    SimpleDateFormat sdf = new SimpleDateFormat(Game.DATE_FORMAT);
+                    try {
+                        date = sdf.parse(textDate.getText().toString());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (textPrice.getText().toString() != null) {
+                    price = Double.parseDouble(textPrice.getText().toString());
+                }
+                Game g = new Game(name, date, price);
+                SteamBackend sb = new SteamBackend();
+                games.add(g);
+                sb.addGame(g);
+                setAdap();
+
+            }
+        });
+        alert.setNegativeButton("cancel", null);
+        alert.show();
 
     }
 
-    public void save(View view){
+    public void save(View view) {
         try {
-            FileOutputStream fos = openFileOutput(SteamGameAppConstants.SAVE_GAMES_FILENAME, MODE_PRIVATE );
+            FileOutputStream fos = openFileOutput(SteamGameAppConstants.SAVE_GAMES_FILENAME, MODE_PRIVATE);
             SteamBackend sb = new SteamBackend();
-            sb.store();
+             sb.store(fos);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

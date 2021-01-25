@@ -3,18 +3,20 @@ package at.htlgkr.steamgameapp;
 import at.htlgkr.steam.ReportType;
 
 public class ReportTypeSpinnerItem {
+    ReportType type;
+    String text;
+
     public ReportTypeSpinnerItem(ReportType type, String displayText) {
-        // Implementieren Sie diesen Konstruktor
+        this.type = type;
+        this.text = displayText;
     }
 
     public ReportType getType(){
-        // Implementieren Sie diese Methode.
-        return null;
+        return this.type;
     }
 
     public String getDisplayText() {
-        // Implementieren Sie diese Methode.
-        return null;
+        return this.text;
     }
 
     @Override
