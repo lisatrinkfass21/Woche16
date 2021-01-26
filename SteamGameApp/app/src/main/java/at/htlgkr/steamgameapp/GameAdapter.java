@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -15,7 +16,7 @@ import java.util.List;
 
 import at.htlgkr.steam.Game;
 
-public class GameAdapter extends BaseAdapter {
+public class GameAdapter extends BaseAdapter implements Filterable {
 
 
     private int listViewItemLayoutId;
@@ -67,14 +68,14 @@ public class GameAdapter extends BaseAdapter {
                 String input = charSequence.toString().toLowerCase(); //Groß und Kleinschreibung soll nicht beachtet werden
 
                 if(input.equals("")){ // alle Elemente werden ausgegeben
-                    filterResults.count = games.size();
-                    filterResults.values = games;
+                    filterResults.count = gamesFilter.size();
+                    filterResults.values = gamesFilter;
                 } else{
                     ArrayList<Game> filteredItems = new ArrayList<>();
 
-                    for (int i = 0; i < games.size(); i++) {// alle elemente die "input" im Namen haben werden angezeigt
-                        if(games.get(i).getName().toLowerCase().contains(input)){
-                            filteredItems.add(games.get(i));
+                    for (int i = 0; i < gamesFilter.size(); i++) {// alle elemente die "input" im Namen haben werden angezeigt
+                        if(gamesFilter.get(i).getName().toLowerCase().contains(input)){
+                            filteredItems.add(gamesFilter.get(i));
                         }
                     }
                     filterResults.count = filteredItems.size();
@@ -86,7 +87,8 @@ public class GameAdapter extends BaseAdapter {
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                gamesFilter = (ArrayList<Game>) filterResults.values; //
+                games = (ArrayList<Game>) filterResults.values; //gefilterten Elemente
+                notifyDataSetChanged();//damit tests funktionieren
             }
         };
 
@@ -96,6 +98,7 @@ public class GameAdapter extends BaseAdapter {
     public void addGame(Game g){
         games.add(g);
         gamesFilter.add(g);
+        notifyDataSetChanged(); //damit tests funktionieren
     }
 
 }

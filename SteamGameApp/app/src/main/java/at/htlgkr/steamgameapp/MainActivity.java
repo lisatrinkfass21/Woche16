@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -153,15 +154,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
 
         });
+        Toast.makeText(getApplicationContext(), "saved", Toast.LENGTH_LONG).show();
     }
 
     private void bindAdapterToListView(ListView listView) {
-        listViewAdapter = new GameAdapter(
-                this,
-                R.layout.game_item_layout,
-                sb.getGames()
-        );
-
+        listViewAdapter = new GameAdapter(this, R.layout.game_item_layout, sb.getGames());
         listView.setAdapter(listViewAdapter);
     }
 
@@ -198,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         message += "\n" + topGames.get(j).toString();
                     }
                     break;
+
                 default:
                     return;
             }
