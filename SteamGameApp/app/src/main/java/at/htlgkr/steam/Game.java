@@ -51,6 +51,11 @@ public class Game {
         return "["+sdf.format(this.releaseDate)+"] "+ this.name + " "+this.price ;
     }
 
+    public String serialize(){
+        SimpleDateFormat sdf = new SimpleDateFormat(this.DATE_FORMAT);
+        return name + ";" + sdf.format(releaseDate) + ";" + price;
+    }
+
     @Override
     public boolean equals(Object o) {
         Game g = (Game) o;
@@ -62,7 +67,7 @@ public class Game {
 
     @Override
     public int hashCode() {
-       return Objects.hash(name, releaseDate, price);
+       return Objects.hash(name);
     }
 }
 

@@ -5,6 +5,7 @@ import android.text.method.SingleLineTransformationMethod;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class SteamBackend {
         try {
             games.clear();
             BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
+            String line = in.readLine();
             while ((line = in.readLine()) != null) {
                 String[] spiele = line.split(";");
                 Date date = sdf.parse(spiele[1]);
@@ -53,21 +54,22 @@ public class SteamBackend {
     }
 
     public void store(OutputStream fileOutputStream) {
-        PrintWriter out = new PrintWriter(new OutputStreamWriter(fileOutputStream));
-        for (Game g : games) {
-            out.println(g.toString());
-            out.flush();
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream))) {
+            for (int i = 0; i < games.size(); i++) {
+                bw.write(games.get(i).serialize());
+                bw.newLine();
+            }
+        } catch (IOException e) {
         }
-        out.close();
     }
 
     public List<Game> getGames() {
-        return this.games;
+        return games;
     }
 
     public void setGames(List<Game> games) {
-        games.clear();
-        this.games = games;
+        this.games.clear();
+        this.games.addAll(games);
     }
 
     public void addGame(Game newGame) {
@@ -89,14 +91,15 @@ public class SteamBackend {
     }
 
     public List<Game> getUniqueGames() {
-        return  games.stream()
+        return games.stream()
                 .distinct()
                 .collect(Collectors.toList());
     }
 
     public List<Game> selectTopNGamesDependingOnPrice(int n) {
         return games.stream()
-                .sorted((Game a, Game b) -> (int) (a.getPrice() - b.getPrice())).limit(n).collect(Collectors.toList());
+                .sorted((Game a, Game b) -> Double.compare(b.getPrice(), a.getPrice()))
+                .limit(n).collect(Collectors.toList());
 
     }
 }

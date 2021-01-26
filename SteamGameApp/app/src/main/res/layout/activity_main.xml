@@ -17,7 +17,6 @@
             android:id="@+id/addGame"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:onClick="addGame"
             android:text="ADD GAME" />
     </LinearLayout>
 
@@ -31,7 +30,6 @@
             android:id="@+id/save"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:onClick="save"
             android:text="SAVE" />
     </LinearLayout>
 
@@ -45,7 +43,6 @@
             android:id="@+id/search"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:onClick="search"
             android:text="SEARCH" />
     </LinearLayout>
 

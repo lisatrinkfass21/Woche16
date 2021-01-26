@@ -1,6 +1,8 @@
 package at.htlgkr.steamgameapp;
 
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.AssetManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,22 +33,26 @@ import at.htlgkr.steam.Game;
 import at.htlgkr.steam.ReportType;
 import at.htlgkr.steam.SteamBackend;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     private static final String GAMES_CSV = "games.csv";
 
-    private List<Game> games = new ArrayList<>();
-    private ListView mListView;
-    private GameAdapter mAdap;
+
+    private ListView listView;
+    private GameAdapter listViewAdapter;
+
+    private SteamBackend sb = new SteamBackend();
+
+
+    private ArrayAdapter<ReportTypeSpinnerItem> spinnerAdapter;
+    private ArrayList<ReportTypeSpinnerItem> spinnerItems = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mListView = findViewById(R.id.gamesList);
         loadGamesIntoListView();
-        setAdap();
-
 
         setUpReportSelection();
         setUpSearchButton();
@@ -54,107 +60,167 @@ public class MainActivity extends AppCompatActivity {
         setUpSaveButton();
     }
 
-    private void setAdap(){
-        mAdap = new GameAdapter(this, R.layout.game_item_layout, games);
-        mListView.setAdapter(mAdap);
-    }
+
 
     private void loadGamesIntoListView() {
+        listView = findViewById(R.id.gamesList);
         try {
-            SteamBackend sb = new SteamBackend();
-            FileInputStream fis = openFileInput(MainActivity.GAMES_CSV);
-            sb.loadGames(fis);
-            games = sb.getGames();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            AssetManager assets = getAssets();
+            sb.loadGames(assets.open(GAMES_CSV));
+            bindAdapterToListView(listView);
+        } catch (IOException e) {
         }
     }
 
     private void setUpReportSelection() {
-        // Implementieren Sie diese Methode.
+        Spinner spinner = findViewById(R.id.chooseReport);
+        spinner.setOnItemSelectedListener(this);
+        fillSpinnerItems();
+        spinnerAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                spinnerItems
+        );
+        spinner.setAdapter(spinnerAdapter);
     }
 
-    private void setUpSearchButton() {
-        // Implementieren Sie diese Methode.
+
+
+    private void setUpSearchButton(){
+        Button but = findViewById(R.id.search);
+            but.setOnClickListener(
+                    view -> {
+                        final EditText editText = new EditText(this);
+                        editText.setId(R.id.dialog_search_field);
+
+                        new AlertDialog.Builder(this)
+                                .setTitle(SteamGameAppConstants.ENTER_SEARCH_TERM)
+                                .setView(editText)
+                                .setPositiveButton("OK", (dialog, which) -> {
+                                    listViewAdapter.getFilter().filter(editText.getText().toString());
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                    }
+            );
+
     }
 
     private void setUpAddGameButton() {
-        // Implementieren Sie diese Methode.
+        Button but = findViewById(R.id.addGame);
+        but.setOnClickListener(view ->  {
+            SimpleDateFormat sdf = new SimpleDateFormat(Game.DATE_FORMAT);
+            LinearLayout linearLayout = new LinearLayout(this);
+            linearLayout.setOrientation(LinearLayout.VERTICAL);
+            final EditText editName = new EditText(this);
+            editName.setId(R.id.dialog_name_field);
+            final EditText editDate = new EditText(this);
+            editDate.setId(R.id.dialog_date_field);
+            final EditText editPrice = new EditText(this);
+            editPrice.setId(R.id.dialog_price_field);
+            linearLayout.addView(editName);
+            linearLayout.addView(editDate);
+            linearLayout.addView(editPrice);
+
+            new AlertDialog.Builder(this)
+                    .setTitle(SteamGameAppConstants.NEW_GAME_DIALOG_TITLE)
+                    .setView(linearLayout)
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        try {
+                            Game game = new Game(
+                                    editName.getText().toString(),
+                                    sdf.parse(editDate.getText().toString()),
+                                    Double.parseDouble(editPrice.getText().toString()));
+                            sb.addGame(game);
+                            listViewAdapter.addGame(game);
+                            listViewAdapter.notifyDataSetChanged();
+                        } catch (ParseException e) {
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
     }
 
     private void setUpSaveButton() {
-        // Implementieren Sie diese Methode.
-    }
-
-    public void search(View view) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(SteamGameAppConstants.ENTER_SEARCH_TERM);
-        final EditText mTextView = new EditText(this);
-        mTextView.setId(R.id.dialog_search_field);
-        alert.setView(mTextView);
-        alert.setPositiveButton("search", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //noch zu programmieren
-            }
-        });
-        alert.setNegativeButton("cancel", null);
-
-    }
-
-    public void addGame(View view) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(SteamGameAppConstants.NEW_GAME_DIALOG_TITLE);
-        final EditText textName = new EditText(this);
-        textName.setId(R.id.dialog_search_field);
-        alert.setView(textName);
-        final EditText textDate = new EditText(this);
-        textDate.setId(R.id.dialog_search_field);
-        alert.setView(textDate);
-        final EditText textPrice = new EditText(this);
-        textPrice.setId(R.id.dialog_search_field);
-        alert.setView(textPrice);
-        alert.setPositiveButton("add", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String name = "";
-                Date date = new Date();
-                double price = 0.0;
-                if (textName.getText().toString() != null) {
-                    name = textName.getText().toString();
+        Button but = findViewById(R.id.save);
+        but.setOnClickListener(view -> {
+                try {
+                    FileOutputStream fos = openFileOutput(SteamGameAppConstants.SAVE_GAMES_FILENAME, MODE_PRIVATE);
+                    sb.store(fos);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
-                if (textDate.getText().toString() != null) {
-                    SimpleDateFormat sdf = new SimpleDateFormat(Game.DATE_FORMAT);
-                    try {
-                        date = sdf.parse(textDate.getText().toString());
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+
+        });
+    }
+
+    private void bindAdapterToListView(ListView listView) {
+        listViewAdapter = new GameAdapter(
+                this,
+                R.layout.game_item_layout,
+                sb.getGames()
+        );
+
+        listView.setAdapter(listViewAdapter);
+    }
+
+    private void fillSpinnerItems() {
+        spinnerItems.add(new ReportTypeSpinnerItem(ReportType.NONE, SteamGameAppConstants.SELECT_ONE_SPINNER_TEXT));
+        spinnerItems.add(new ReportTypeSpinnerItem(ReportType.SUM_GAME_PRICES, SteamGameAppConstants.SUM_GAME_PRICES_SPINNER_TEXT));
+        spinnerItems.add(new ReportTypeSpinnerItem(ReportType.AVERAGE_GAME_PRICES, SteamGameAppConstants.AVERAGE_GAME_PRICES_SPINNER_TEXT));
+        spinnerItems.add(new ReportTypeSpinnerItem(ReportType.UNIQUE_GAMES, SteamGameAppConstants.UNIQUE_GAMES_SPINNER_TEXT));
+        spinnerItems.add(new ReportTypeSpinnerItem(ReportType.MOST_EXPENSIVE_GAMES, SteamGameAppConstants.MOST_EXPENSIVE_GAMES_SPINNER_TEXT));
+    }
+
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            ReportTypeSpinnerItem rtsi = (ReportTypeSpinnerItem) adapterView.getItemAtPosition(i);
+
+            String message;
+
+            switch (rtsi.getType()){
+                case SUM_GAME_PRICES:
+                    message = SteamGameAppConstants.ALL_PRICES_SUM + sb.sumGamePrices();
+                    break;
+                case AVERAGE_GAME_PRICES:
+                    message = SteamGameAppConstants.ALL_PRICES_AVERAGE + sb.averageGamePrice();
+                    break;
+                case UNIQUE_GAMES:
+                    message = SteamGameAppConstants.UNIQUE_GAMES_COUNT + sb.getUniqueGames().size();
+                    break;
+                case MOST_EXPENSIVE_GAMES:
+                    message = SteamGameAppConstants.MOST_EXPENSIVE_GAMES;
+                    List<Game> topGames = sb.selectTopNGamesDependingOnPrice(3);
+                    for (int j = 0; j < topGames.size(); j++) {
+                        message += "\n" + topGames.get(j).toString();
                     }
-                }
-                if (textPrice.getText().toString() != null) {
-                    price = Double.parseDouble(textPrice.getText().toString());
-                }
-                Game g = new Game(name, date, price);
-                SteamBackend sb = new SteamBackend();
-                games.add(g);
-                sb.addGame(g);
-                setAdap();
-
+                    break;
+                default:
+                    return;
             }
-        });
-        alert.setNegativeButton("cancel", null);
-        alert.show();
 
-    }
-
-    public void save(View view) {
-        try {
-            FileOutputStream fos = openFileOutput(SteamGameAppConstants.SAVE_GAMES_FILENAME, MODE_PRIVATE);
-            SteamBackend sb = new SteamBackend();
-             sb.store(fos);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            new AlertDialog.Builder(this)
+                    .setTitle(rtsi.getDisplayText())
+                    .setMessage(message)
+                    .setNeutralButton("OK", null)
+                    .show();
         }
 
-    }
+
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {}
+
 }
+
+
+
+
+
+
+
+
+

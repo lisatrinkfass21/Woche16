@@ -11,7 +11,7 @@ public class ReportTypeSpinnerItem {
         this.text = displayText;
     }
 
-    public ReportType getType(){
+    public ReportType getType() {
         return this.type;
     }
 
@@ -21,7 +21,6 @@ public class ReportTypeSpinnerItem {
 
     @Override
     public String toString() {
-        // Implementieren Sie diese Methode.
-        return null;
+        return this.text;
     }
 }
